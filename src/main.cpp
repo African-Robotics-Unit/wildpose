@@ -27,7 +27,14 @@
 #include "lvx_file.h"
 #include <cmdline.h>
 #include <stdio.h>
+#include <JetsonGPIO.h>
 #include <memory.h>
+#include <iostream>
+#include <fstream>
+#include <mutex>
+#include <thread>
+#include <unistd.h>
+#include <chrono>
 #ifdef WIN32
 #include <xiApi.h>       // Windows
 #else
@@ -56,8 +63,9 @@ uint8_t connected_lidar_count = 0;
 // Check error macro. It executes function. Print and throw error if result is not OK.
 #define CE(func) {XI_RETURN stat = (func); if (XI_OK!=stat) {printf("Error:%d returned from function:"#func"\n",stat);throw "Error";}}
 
-
+using namespace std;
 using namespace std::chrono;
+using namespace GPIO;
 
 /** Connect all the broadcast device in default and connect specific device when use program options or broadcast_code_list is not empty. */
 std::vector<std::string> broadcast_code_list = {
@@ -66,6 +74,67 @@ std::vector<std::string> broadcast_code_list = {
   //"000000000000003",
   //"000000000000004"
 };
+
+std::mutex m;
+int counter = 0;
+
+// Tester function for updating global variable in separate thread
+int test(const int& value = 0)
+{
+    std::lock_guard<std::mutex> lock(m);
+    if (value == 0)
+    {
+        return counter;
+    }
+    else
+    {
+        counter = value;
+        return 0;
+    }
+}
+
+void encoder1_thread(){
+    int encode_a = 15;
+    int encode_b = 13;
+    int val_a;
+    int val_b;
+    GPIO::cleanup();
+	  GPIO::setmode(GPIO::BOARD);
+	  GPIO::setup(encode_a, GPIO::IN);
+    GPIO::setup(encode_b, GPIO::IN);
+
+    int last_reading;
+    int counter = 0;
+    string currentDir ="";
+
+    last_reading = GPIO::input(encode_b);
+
+    while (counter<1000){
+        // get a sample
+        val_a = GPIO::input(encode_a);
+        val_b = GPIO::input(encode_b);
+
+        if ((val_b != last_reading) && val_b==1){
+            if (val_a != val_b) {
+			    counter --;
+			    currentDir ="CCW";
+		    } else {
+			    // Encoder is rotating CW so increment
+			    counter ++;
+			    currentDir ="CW";
+		    }
+
+		    cout << ("Direction: ");
+		    cout << (currentDir);
+		    cout << (" | Counter: ");
+		    cout << (counter) << endl;
+	    }
+
+        last_reading = val_b;
+        
+    }
+
+}
 
 /** Receiving error message from Livox Lidar. */
 void OnLidarErrorStatusCallback(livox_status status, uint8_t handle, ErrorMessage *message) {
@@ -423,6 +492,8 @@ int main(int argc, const char *argv[]) {
   //xiSetParamInt(xiH, XI_PRM_ACQ_TRANSPORT_BUFFER_COMMIT, 500);
 	CE(xiStartAcquisition(xiH));
   XI_IMG xi_arr[EXPECTED_IMAGES];
+
+
   
   for (i = 0; i < EXPECTED_IMAGES; ++i) {
     std::list<LvxBasePackDetail> point_packet_list_temp;

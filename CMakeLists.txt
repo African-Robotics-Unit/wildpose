@@ -8,14 +8,13 @@ add_executable(wildpose src/main.cpp src/lvx_file.cpp include/xiAPI/xiAPI_tiff.c
 target_link_libraries(wildpose 
 	m3api
 	tiff
+	JetsonGPIO
 	wildpose_static)
 
 include_directories(include
 	include/sdk_core
-	include/xiAPI
-	include/libtiff)
+	include/xiAPI)
 
-add_subdirectory(include/libtiff)
 add_subdirectory(include/sdk_core)
 
 install(TARGETS wildpose RUNTIME DESTINATION bin)
