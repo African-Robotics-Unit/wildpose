@@ -100,8 +100,8 @@ void encoder1_thread(){
     int val_b;
     GPIO::cleanup();
 	  GPIO::setmode(GPIO::BOARD);
-	  GPIO::setup(encode_a, GPIO::IN);
-    GPIO::setup(encode_b, GPIO::IN);
+	  GPIO::setup(encode_a, GPIO::INTO);
+    GPIO::setup(encode_b, GPIO::INTO);
 
     int last_reading;
     int counter = 0;
