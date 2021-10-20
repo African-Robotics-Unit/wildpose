@@ -1,27 +1,3 @@
-//
-// The MIT License (MIT)
-//
-// Copyright (c) 2019 Livox. All rights reserved.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-
 #include <algorithm>
 #include <string.h>
 #include "lvx_file.h"
@@ -30,6 +6,8 @@
 #include <JetsonGPIO.h>
 #include <memory.h>
 #include <iostream>
+#include <iomanip>
+#include <ctime>
 #include <fstream>
 #include <mutex>
 #include <thread>
@@ -75,66 +53,6 @@ std::vector<std::string> broadcast_code_list = {
   //"000000000000004"
 };
 
-std::mutex m;
-int counter = 0;
-
-// Tester function for updating global variable in separate thread
-int test(const int& value = 0)
-{
-    std::lock_guard<std::mutex> lock(m);
-    if (value == 0)
-    {
-        return counter;
-    }
-    else
-    {
-        counter = value;
-        return 0;
-    }
-}
-
-void encoder1_thread(){
-    int encode_a = 15;
-    int encode_b = 13;
-    int val_a;
-    int val_b;
-    GPIO::cleanup();
-	  GPIO::setmode(GPIO::BOARD);
-	  GPIO::setup(encode_a, GPIO::INTO);
-    GPIO::setup(encode_b, GPIO::INTO);
-
-    int last_reading;
-    int counter = 0;
-    string currentDir ="";
-
-    last_reading = GPIO::input(encode_b);
-
-    while (counter<1000){
-        // get a sample
-        val_a = GPIO::input(encode_a);
-        val_b = GPIO::input(encode_b);
-
-        if ((val_b != last_reading) && val_b==1){
-            if (val_a != val_b) {
-			    counter --;
-			    currentDir ="CCW";
-		    } else {
-			    // Encoder is rotating CW so increment
-			    counter ++;
-			    currentDir ="CW";
-		    }
-
-		    cout << ("Direction: ");
-		    cout << (currentDir);
-		    cout << (" | Counter: ");
-		    cout << (counter) << endl;
-	    }
-
-        last_reading = val_b;
-        
-    }
-
-}
 
 /** Receiving error message from Livox Lidar. */
 void OnLidarErrorStatusCallback(livox_status status, uint8_t handle, ErrorMessage *message) {
@@ -400,10 +318,9 @@ void SetProgramOption(int argc, const char *argv[]) {
   return;
 }
 
-int main(int argc, const char *argv[]) {
-/** Set the program options. */
+int main_thread(){
   HANDLE xiH = NULL;
-  SetProgramOption(argc, argv);
+  //SetProgramOption(argc, argv);
 
   printf("Livox SDK initializing.\n");
 /** Initialize Livox-SDK. */
@@ -470,6 +387,24 @@ int main(int argc, const char *argv[]) {
 
   lvx_file_handler.InitLvxFileHeader();
 
+  auto t = std::time(nullptr);
+  auto tm = *std::localtime(&t);
+  std::ostringstream oss;
+  oss << std::put_time(&tm, "%d-%m-%Y%H-%M-%S");
+  auto str = oss.str();
+  char char_date[30];
+  strcpy(char_date, str.c_str());
+
+  std::cout << str << std::endl;
+
+  std::ofstream encoderlog1;
+  encoderlog1.open (str+"encode1.csv");
+  encoderlog1 << "Angles:\n";
+
+  std::ofstream encoderlog2;
+  encoderlog2.open (str+"encode2.csv");
+  encoderlog2 << "Angles:\n";
+
   int i = 0;
   steady_clock::time_point last_time = steady_clock::now();
   int img_size_bytes = 0;
@@ -493,8 +428,6 @@ int main(int argc, const char *argv[]) {
 	CE(xiStartAcquisition(xiH));
   XI_IMG xi_arr[EXPECTED_IMAGES];
 
-
-  
   for (i = 0; i < EXPECTED_IMAGES; ++i) {
     std::list<LvxBasePackDetail> point_packet_list_temp;
     {
@@ -516,21 +449,24 @@ int main(int argc, const char *argv[]) {
       break;
     }
     printf("LVX data from frame %d received.\n", i); // image buffer
-    //XI_IMG image;
-		//memset(&image, 0, sizeof(&image));
-		//image.size = sizeof(XI_IMG);
-		//CE(xiGetImage(xiH, 100, &image)); // getting next image from the camera opened
-		//unsigned char pixel = *(unsigned char*)image.bp;
-		//printf("Image %d (%dx%d) received from camera. \n", i, (int)image.width, (int)image.height);
-    //xi_arr[i] = image;
 
     lvx_file_handler.SaveFrameToLvxFile(point_packet_list_temp);
     printf("Finish save %d frame to lvx file.\n", i);
+
+    int counter = test1();
+    std::string count_string = to_string(counter);
+    encoderlog1 << count_string+"\n";
+
+    int counter2 = test2();
+    std::string count_string2 = to_string(counter2);
+    encoderlog2 << count_string2+"\n";
     
 		
   }
 
   lvx_file_handler.CloseLvxFile();
+  encoderlog1.close();
+  encoderlog2.close();
   printf("Stopping acquisition...\n");
   xiStopAcquisition(xiH);
   
@@ -538,12 +474,12 @@ int main(int argc, const char *argv[]) {
   for (int i = 0; i < EXPECTED_IMAGES; ++i)
 		{
       char filename[100] = "";
-		  sprintf(filename, "image%03d.tif", i);
+		  sprintf(filename, "%simage%03d.tif", char_date, i);
       XI_IMG img = images.at(i);
 		  WriteImage(&img, filename);
 		}
 
-  
+  stop=1;
 
   for (i = 0; i < kMaxLidarCount; ++i) {
     if (devices[i].device_state == kDeviceStateSampling) {
@@ -554,11 +490,24 @@ int main(int argc, const char *argv[]) {
     }
   }
 
-	
-
 /** Uninitialize Livox-SDK. */
   Uninit();
 	printf("Done\n");
   xiCloseDevice(xiH);
   usleep(10000);
+}
+
+int main(int argc, const char *argv[]) {
+/** Set the program options. */
+
+  thread t1(main_thread);
+  thread t2(encode1);
+  thread t3(encode2);
+
+  t1.join();
+  t2.join();
+  t3.join();
+  GPIO::cleanup();
+  return 0;
+  
 }
