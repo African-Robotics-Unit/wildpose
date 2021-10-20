@@ -9,6 +9,7 @@ target_link_libraries(wildpose
 	m3api
 	tiff
 	JetsonGPIO
+	pthread
 	wildpose_static)
 
 include_directories(include
