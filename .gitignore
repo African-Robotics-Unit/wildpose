@@ -12,4 +12,6 @@ build/*
 .python_history
 __pycache__
 data
+GPU*
+Other*
 logs

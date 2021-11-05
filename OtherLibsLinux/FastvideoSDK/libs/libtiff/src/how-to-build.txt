@@ -1,0 +1,25 @@
+How to build libtiff with zlib and jpeg support
+
+Windows:
+
+1. Configure with CMake (JPEG, ZLib):
+1.1 Create bin folder
+1.2 Execute in CMD:
+
+set SolutionDir=
+cmake -DJPEG_LIBRARY:PATH=%SolutionDir%/libs/libjpeg-turbo/08-bit/lib/win/x64/jpeg62_8bit.lib -DJPEG_INCLUDE_DIR:PATH=%SolutionDir%/libs/libjpeg-turbo/08-bit/include/win/  -DZLIB_LIBRARY:PATH=%SolutionDir%/libs/zlib/x64/zlib.lib -DZLIB_INCLUDE_DIR:PATH=%SolutionDir%/libs/zlib/inc/ 
+
+2. Build with VS
+
+
+Linux
+
+1. Install CMake 3.20.2. Default Ubuntu 18.04 CMake 3.10.2 has a problem.
+2. Build with default library
+2.1 cmake .	
+2.2 make
+
+
+ATTENTION!
+
+"SDL checks" has to be disabled to compile with VS2019

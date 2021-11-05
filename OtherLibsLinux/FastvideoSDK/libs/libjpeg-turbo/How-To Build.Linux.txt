@@ -1,0 +1,17 @@
+Version libjpeg-turbo-2.1.0
+
+8-bit lib with 8 version of interface  for libtiff
+1. install cmake
+2. install nasm
+3. cmake -G"Unix Makefiles" -DWITH_JPEG8=1
+4. make
+
+
+12-bit 
+1. install cmake
+2. install nasm
+3. cmake -G"Unix Makefiles" -D WITH_12BIT=1
+4. make
+5. install patchelf 
+6. patchelf --set-soname libjpeg12.so.62 ./libjpeg12.so.62.3.0
+7. Check SONAME  readelf -d  ./libjpeg12.so.62.3.0

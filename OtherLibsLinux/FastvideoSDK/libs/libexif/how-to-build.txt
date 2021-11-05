@@ -1,0 +1,9 @@
+Tegra Specific:
+NEW:
+automake -a --force-missing --copy
+./configure
+make
+
+
+
+
