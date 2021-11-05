@@ -1,5 +1,5 @@
 # ignore
-build/*
+/build*/*
 .vscode
 .cache
 .config
@@ -12,6 +12,6 @@ build/*
 .python_history
 __pycache__
 data
-GPU*
-Other*
+/GPU*/*
+/Other*/*
 logs
