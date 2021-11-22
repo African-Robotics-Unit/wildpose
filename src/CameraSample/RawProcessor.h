@@ -40,12 +40,14 @@
 #include "CUDAProcessorOptions.h"
 #include "AsyncFileWriter.h"
 #include "RTSPStreamerServer.h"
+//#include "test_encoder.h"
 
 class CUDAProcessorBase;
 class CircularBuffer;
 class MainWindow;
 class GLRenderer;
 class GPUCameraBase;
+//class test_encoder;
 
 class RawProcessor : public QObject
 {
@@ -63,6 +65,7 @@ public:
     fastStatus_t         getLastError();
     QString              getLastErrorDescription();
     QMap<QString, float> getStats();
+    
     void startWriting();
     void stopWriting();
     void setOutputPath(const QString& path){mOutputPath = path;}
@@ -98,6 +101,7 @@ private:
 
     QScopedPointer<CUDAProcessorBase> mProcessorPtr;
     QScopedPointer<AsyncWriter>       mFileWriterPtr;
+    //QScopedPointer<test_encoder>       rot;
     QMutex               mWaitMutex;
     QWaitCondition       mWaitCond;
     bool                 mWake = false;

@@ -21,7 +21,9 @@ INCLUDEPATH += $$PWD/CUDASupport
 INCLUDEPATH += $$PWD/Widgets
 INCLUDEPATH += $$PWD/Camera
 INCLUDEPATH += $$PWD/RtspServer
+INCLUDEPATH += $$PWD/third_party/rapidxml
 INCLUDEPATH += /usr/local/include
+
 
 
 SOURCES += main.cpp\
@@ -57,7 +59,9 @@ SOURCES += main.cpp\
     RtspServer/TcpClient.cpp \
     RtspServer/vutils.cpp \
     Camera/ImperxCamera.cpp \
-    rotary_encoder.cpp
+    test_encoder.cpp \
+    lvx_file.cpp \
+    lidar.cpp
 
 contains( DEFINES, SUPPORT_GENICAM ){
     SOURCES += rc_genicam_api/buffer.cc \
@@ -129,7 +133,10 @@ HEADERS  += MainWindow.h \
     CUDASupport/CudaAllocator.h \
     CUDASupport/GPUImage.h \
     version.h \
-    Camera/ImperxCamera.h
+    Camera/ImperxCamera.h \
+    test_encoder.h \
+    lvx_file.h \
+    lidar.h
 
 FORMS    += MainWindow.ui \
     Widgets/DenoiseController.ui \
@@ -174,7 +181,7 @@ win32 {
 LIBS += -L/usr/local/lib
 LIBS += -L/usr/lib
 LIBS += -lavdevice -lavfilter -lavformat -lavcodec -lavutil -lswresample -lswscale  -lpthread -lx264
-LIBS += -lX11 -lm -lvdpau -lva -lva-drm -lva-x11 -ldl -lnvmpi -lz -lJetsonGPIO
+LIBS += -lX11 -lm -lvdpau -lva -lva-drm -lva-x11 -ldl -lnvmpi -lz -lJetsonGPIO -llivox_sdk_static
 
 RESOURCES += \
     Resorces.qrc

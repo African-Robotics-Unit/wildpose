@@ -34,7 +34,9 @@
 #include "MainWindow.h"
 #include "FPNReader.h"
 #include "FFCReader.h"
-#include "rotary_encoder.h"
+#include "test_encoder.h"
+#include "lidar.h"
+#include <chrono>
 
 #include "avfilewriter/avfilewriter.h"
 
@@ -44,7 +46,10 @@
 #include <QPoint>
 
 using namespace std;
-rotary_encoder rot;
+using namespace std::chrono;
+
+
+test_encoder rot;
 
 RawProcessor::RawProcessor(GPUCameraBase *camera, GLRenderer *renderer):QObject(nullptr),
     mCamera(camera),
@@ -124,7 +129,6 @@ void RawProcessor::updateOptions(const CUDAProcessorOptions& opts)
 void RawProcessor::startWorking()
 {
     mWorking = true;
-    rot.run_threads();
 
     qint64 lastTime = 0;
     QElapsedTimer tm;
@@ -138,6 +142,10 @@ void RawProcessor::startWorking()
     QString pgmHeader = QString("P5\n%1 %2\n%3\n").arg(mOptions.Width).arg(mOptions.Height).arg(maxVal);
 
     mWake = false;
+
+    rot.start();
+
+    steady_clock::time_point last_time = steady_clock::now();
 
     while(mWorking)
     {
@@ -195,6 +203,8 @@ void RawProcessor::startWorking()
             }
         }
 
+        
+
         if(mWriting && mFileWriterPtr)
         {
             if(mOptions.Codec == CUDAProcessorOptions::vcJPG ||
@@ -212,6 +222,26 @@ void RawProcessor::startWorking()
                     mFileWriterPtr->wake();
 
                     rot.write_encoders(mFrameCnt);
+
+                    if(mFrameCnt%6 == 0){
+                        //LIDAR capture
+                        std::list<LvxBasePackDetail> point_packet_list_temp;
+                        {
+                        std::unique_lock<std::mutex> lock(mtx);
+                        point_pack_condition.wait_for(lock, milliseconds(kDefaultFrameDurationTime) - (steady_clock::now() - last_time));
+                        
+                        point_packet_list_temp.swap(point_packet_list);
+                        last_time = steady_clock::now();
+                        }
+                        if(point_packet_list_temp.empty()) {
+                        printf("Point cloud packet is empty.\n");
+                        break;
+                        }
+                        printf("LVX data from frame %d received.\n", mFrameCnt); // image buffer
+
+                        lvx_file_handler.SaveFrameToLvxFile(point_packet_list_temp);
+                        printf("Finish save %d frame to lvx file.\n", mFrameCnt);
+                    }
 
                     mFrameCnt++;
                 }
@@ -408,6 +438,53 @@ void RawProcessor::startWriting()
     mFileWriterPtr->initBuffers(sz);
     
     rot.open_csv();
+
+    printf("Livox SDK initializing.\n");
+    /** Initialize Livox-SDK. */
+    if (!Init()) {
+        return;
+    }
+    printf("Livox SDK has been initialized.\n");
+
+    LivoxSdkVersion _sdkversion;
+    GetLivoxSdkVersion(&_sdkversion);
+    printf("Livox SDK version %d.%d.%d .\n", _sdkversion.major, _sdkversion.minor, _sdkversion.patch);
+
+    memset(devices, 0, sizeof(devices));
+    SetBroadcastCallback(OnDeviceBroadcast);
+
+/** Set the callback function called when device state change,
+ * which means connection/disconnection and changing of LiDAR state.
+ */
+    SetDeviceStateUpdateCallback(OnDeviceInfoChange);
+
+/** Start the device discovering routine. */
+    if (!Start()) {
+        Uninit();
+        return;
+    }
+    printf("Start discovering device.\n");
+
+    WaitForDevicesReady();
+
+    AddDevicesToConnect();
+
+    if (connected_lidar_count == 0) {
+        printf("No device will be connected.\n");
+        Uninit();
+        return;
+    }
+
+    WaitForExtrinsicParameter();
+
+    printf("Start initialize lvx file.\n");
+    if (!lvx_file_handler.InitLvxFile()) {
+        Uninit();
+        return;
+    }
+
+    lvx_file_handler.InitLvxFileHeader();
+    
     
     mFrameCnt = 0;
     mWriting = true;
@@ -434,8 +511,23 @@ void RawProcessor::stopWriting()
 
     mCodec = CUDAProcessorOptions::vcNone;
 
-    //rot.stop_threads();
+    rot.stop();
     rot.close_file();
+
+    lvx_file_handler.CloseLvxFile();
+
+    for (int i = 0; i < kMaxLidarCount; ++i) {
+    if (devices[i].device_state == kDeviceStateSampling) 
+        {
+        /** Stop the sampling of Livox LiDAR. */
+            LidarStopSampling(devices[i].handle, OnStopSampleCallback, nullptr);
+        }
+    }
+
+/** Uninitialize Livox-SDK. */
+    Uninit();
+    printf("Done\n");
+    usleep(10000);
 }
 
 void RawProcessor::setSAM(const QString& fpnFileName, const QString& ffcFileName)
