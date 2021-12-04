@@ -33,6 +33,7 @@ public:
     void stop();
     void wake();
     void encoder_update_thread(int encoder_index);
+    void loopy();
     void open_csv();
     void close_file();
     void write_encoders(unsigned counter);
@@ -44,6 +45,8 @@ public slots:
 private:
     int counter0;
     int counter1;
+    int counter2;
+    int counter3;
     int stop_flag;
     bool eWake;
     std::mutex m;

@@ -132,10 +132,14 @@ bool XimeaCamera::open(uint32_t devID)
         ret = xiGetParamInt(hDevice, XI_PRM_IMAGE_IS_COLOR, &is_color);
         mIsColor = is_color;
 
-        ret = xiSetParamFloat(hDevice, XI_PRM_EXP_PRIORITY, 1);
+        xiSetParamFloat(hDevice, XI_PRM_EXP_PRIORITY, 1);
 
-        xiSetParamInt(hDevice, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FREE_RUN);
-        xiGetParamFloat(hDevice, XI_PRM_FRAMERATE, &mFPS);
+        xiSetParamInt(hDevice, XI_PRM_EXPOSURE, 10000);
+
+        //xiSetParamInt(hDevice, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FREE_RUN);
+        xiSetParamInt(hDevice, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);
+        xiSetParamFloat(hDevice, XI_PRM_FRAMERATE, 60);
+        //xiGetParamFloat(hDevice, XI_PRM_FRAMERATE, &mFPS);
 
 
         // color camera
@@ -290,20 +294,20 @@ bool XimeaCamera::setParameter(cmrCameraParameter param, float val)
     case prmFrameRate:
         if(val < 0)
         {
-            ret = xiSetParamInt(hDevice, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FREE_RUN);
-            return ret == XI_OK;
+            //ret = xiSetParamInt(hDevice, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FREE_RUN);
+            //return ret == XI_OK;
         }
         else
         {
             ret = xiSetParamInt(hDevice, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);
-            ret = xiSetParamFloat(hDevice, XI_PRM_FRAMERATE, val);
+            ret = xiSetParamFloat(hDevice, XI_PRM_FRAMERATE, 60);
             return ret == XI_OK;
         }
 
 
     case prmExposureTime:
         v = val;
-        ret = xiSetParamInt(hDevice, XI_PRM_EXPOSURE, v);
+        ret = xiSetParamInt(hDevice, XI_PRM_EXPOSURE, 10000);
         return ret == XI_OK;
 
     default:

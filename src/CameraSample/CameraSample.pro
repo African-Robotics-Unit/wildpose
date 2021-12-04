@@ -60,8 +60,7 @@ SOURCES += main.cpp\
     RtspServer/vutils.cpp \
     Camera/ImperxCamera.cpp \
     test_encoder.cpp \
-    lvx_file.cpp \
-    lidar.cpp
+    lvx_file.cpp
 
 contains( DEFINES, SUPPORT_GENICAM ){
     SOURCES += rc_genicam_api/buffer.cc \
@@ -135,8 +134,7 @@ HEADERS  += MainWindow.h \
     version.h \
     Camera/ImperxCamera.h \
     test_encoder.h \
-    lvx_file.h \
-    lidar.h
+    lvx_file.h
 
 FORMS    += MainWindow.ui \
     Widgets/DenoiseController.ui \

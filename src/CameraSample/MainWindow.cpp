@@ -34,6 +34,8 @@
 #include <QTimer>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QString>
+#include <QDir>
 
 #include <iterator>
 
@@ -43,6 +45,15 @@
 #include "FPNReader.h"
 #include "FFCReader.h"
 //#include "GtGWidget.h"
+
+#include <string.h>
+#include <stdio.h>
+#include <memory.h>
+#include <iomanip>
+#include <ctime>
+#include <fstream>
+#include <unistd.h>
+#include <chrono>
 
 #ifdef SUPPORT_XIMEA
 #include "XimeaCamera.h"
@@ -62,12 +73,17 @@
 #endif
 
 using namespace std;
+using namespace std::chrono;
 using namespace GPIO;
 
 QVector<unsigned short> gammaLin(16384);
 QVector<unsigned short> gammaSRGB(16384);
 
 int getBitrate(const QString& text, int minimum = 10000);
+
+std::string out_path_str;
+
+QString out_path;
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -566,7 +582,7 @@ void MainWindow::readSettings()
 
     QString def = QDir::homePath() + "/FastMV/Record";
     ui->txtOutPath->setText(settings.value("Record/OutPath", def).toString());
-    ui->txtFilePrefix->setText(settings.value("Record/FilePrefix", QStringLiteral("Frame_")).toString());
+    ui->txtFilePrefix->setText(settings.value("Record/FilePrefix", QStringLiteral("img")).toString());
 
     {
         QSignalBlocker b(ui->cboOutFormat);
@@ -677,6 +693,28 @@ void MainWindow::on_actionOpenCamera_triggered()
 #if defined SUPPORT_XIMEA || defined SUPPORT_GENICAM || defined SUPPORT_FLIR|| defined SUPPORT_IMPERX
     openCamera(0);
 #endif
+    auto t = std::time(nullptr);
+    auto tm = *std::localtime(&t);
+    std::ostringstream oss;
+    oss << std::put_time(&tm, "%d-%m-%Y%H-%M-%S");
+    auto str = oss.str();
+    char char_date[30];
+    strcpy(char_date, str.c_str());
+
+    std::string out_path_str = "/media/daniel/ssd/wildpose_data/" + str;
+
+    QString out_path = QString::fromStdString(out_path_str);
+
+    QDir dir(out_path);
+    if (!dir.exists())
+        dir.mkpath(".");
+    
+    chdir(out_path_str.c_str());
+
+    cout << "Output Path:" << endl;
+    cout << out_path_str << endl;
+
+    mProcessorPtr->setOutputPath(out_path);
 }
 
 void MainWindow::on_actionRecord_toggled(bool arg1)
@@ -696,7 +734,10 @@ void MainWindow::on_actionRecord_toggled(bool arg1)
         mOptions.JpegSamplingFmt = (fastJpegFormat_t)(ui->cboSamplingFmt->currentData().toInt());
         mOptions.bitrate = getBitrate(ui->cbBitrate->currentText());
 
-        mProcessorPtr->setOutputPath(ui->txtOutPath->text());
+        
+
+        //mProcessorPtr->setOutputPath(out_path);
+        
         mProcessorPtr->setFilePrefix(ui->txtFilePrefix->text());
         mProcessorPtr->updateOptions(mOptions);
         mProcessorPtr->startWriting();
@@ -715,6 +756,7 @@ void MainWindow::on_actionRecord_toggled(bool arg1)
 
 void MainWindow::on_actionExit_triggered()
 {
+    mProcessorPtr->stopWriting();
     close();
 }
 
@@ -1056,6 +1098,8 @@ void MainWindow::on_actionPlay_toggled(bool arg1)
 
     if(arg1)
     {
+        
+        
         updateOptions(mOptions);
         mProcessorPtr->updateOptions(mOptions);
         mProcessorPtr->setSAM(ui->txtFPNFileName->text(),
@@ -1069,6 +1113,7 @@ void MainWindow::on_actionPlay_toggled(bool arg1)
     else
     {
         mCameraPtr->stop();
+        mProcessorPtr->stopWriting();
         ui->gtgWidget->stop();
     }
 }
