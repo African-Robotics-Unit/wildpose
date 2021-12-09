@@ -19,15 +19,10 @@
 #include <unistd.h>      // usleep
 #endif
 
-#include <QElapsedTimer>
-#include <QDateTime>
-#include <QDebug>
-#include <QPoint>
-
 using namespace std;
 using namespace GPIO;
 
-test_encoder::test_encoder(QObject *parent) : QObject(parent)
+test_encoder::test_encoder()
 {
     this -> counter0 = 0;
     this -> counter1 = 0;
@@ -101,14 +96,45 @@ int test_encoder::encoder_count(const int& value = 0, int encoder_index = 0)
     }
 }
 
+void test_encoder::setup_pins(){
+	int encode_a;
+    	int encode_b;
+    //int val_a;
+    //int val_b;
+    //int last_reading;
+
+    	GPIO::setmode(GPIO::BOARD);
+    //GPIO::cleanup();
+
+        encode_a = 19;
+        encode_b = 21;
+        GPIO::setup(encode_a, GPIO::INTO);
+        GPIO::setup(encode_b, GPIO::INTO);
+        encode_a = 15;
+        encode_b = 13;
+        GPIO::setup(encode_a, GPIO::INTO);
+        GPIO::setup(encode_b, GPIO::INTO);
+        encode_a = 12;
+        encode_b = 16;
+        GPIO::setup(encode_a, GPIO::INTO);
+        GPIO::setup(encode_b, GPIO::INTO);
+        encode_a = 18;
+        encode_b = 22;
+        GPIO::setup(encode_a, GPIO::INTO);
+        GPIO::setup(encode_b, GPIO::INTO);
+
+	cout << "Pins set up!" << endl;
+}
+
 // Threaded function for updating encoder count variable based on pin values
 void test_encoder::encoder_update_thread(int encoder_index = 0){
-    int encode_a = 13;
-    int encode_b = 15;
+    int encode_a;
+    int encode_b;
     int val_a;
     int val_b;
     int last_reading;
-
+	
+    //this -> setup_pins();
     //GPIO::cleanup();
     //GPIO::setmode(GPIO::BOARD);
 
@@ -116,31 +142,31 @@ void test_encoder::encoder_update_thread(int encoder_index = 0){
         //uncomment when encoders are fixed
         encode_a = 19;
         encode_b = 21;
-	    GPIO::setup(encode_a, GPIO::INTO);
+	GPIO::setup(encode_a, GPIO::INTO);
         GPIO::setup(encode_b, GPIO::INTO);
     } else if(encoder_index == 1)
     {
         ///uncomment when encoders are fixed
-        encode_a = 13;
-        encode_b = 15;
-	    GPIO::setup(encode_a, GPIO::INTO);
+        encode_a = 15;
+        encode_b = 13;
+	GPIO::setup(encode_a, GPIO::INTO);
         GPIO::setup(encode_b, GPIO::INTO);
     }else if(encoder_index == 2)
     {
         encode_a = 12;
         encode_b = 16;
-	    GPIO::setup(encode_a, GPIO::INTO);
+	GPIO::setup(encode_a, GPIO::INTO);
         GPIO::setup(encode_b, GPIO::INTO);
     }else
     {
-        encode_a = 24;
-        encode_b = 26;
-	    GPIO::setup(encode_a, GPIO::INTO);
+        encode_a = 18;
+        encode_b = 22;
+	GPIO::setup(encode_a, GPIO::INTO);
         GPIO::setup(encode_b, GPIO::INTO);
     }
     
     last_reading = GPIO::input(encode_b);
-    eWake = false;
+    //eWake = false;
 
     while (stop_flag == 0){
         // get a sample
@@ -302,6 +328,7 @@ void test_encoder::stop(){
 
 void test_encoder::start(){
     cout << "Running threads!" << endl;
+    //this -> setup_pins();
     //this -> encoder_update_thread();
     //GPIO::cleanup();
     GPIO::setmode(GPIO::BOARD);

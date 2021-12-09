@@ -1,11 +1,6 @@
 #ifndef TEST_ENCODER_H
 #define TEST_ENCODER_H
 
-#include <QObject>
-#include <QThread>
-#include <QMutex>
-#include <QWaitCondition>
-
 #include <algorithm>
 #include <string.h>
 #include <stdio.h>
@@ -22,11 +17,11 @@
 
 using namespace std;
 
-class test_encoder : public QObject
+class test_encoder
 {
-    Q_OBJECT
+    
 public:
-    explicit test_encoder(QObject *parent = nullptr);
+    explicit test_encoder();
     ~test_encoder();
     void start();
     int encoder_count(const int& value, int encoder_index);
@@ -37,10 +32,7 @@ public:
     void open_csv();
     void close_file();
     void write_encoders(unsigned counter);
-
-signals:
-
-public slots:
+    void setup_pins();
 
 private:
     int counter0;
@@ -51,9 +43,9 @@ private:
     bool eWake;
     std::mutex m;
     std::ofstream encoderlog1;
-    QThread encoder_thread;
-    QMutex eMutex;
-    QWaitCondition eWait;
+    //QThread encoder_thread;
+    //QMutex eMutex;
+    //QWaitCondition eWait;
 };
 
 #endif // TEST_ENCODER_H
