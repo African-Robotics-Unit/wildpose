@@ -46,14 +46,11 @@ void test_encoder::wake(){
 }
 
 // Tester function for updating global variable in separate thread
-int test_encoder::encoder_count(const int& value = 0, int encoder_index = 0)
+int test_encoder::encoder_count(const int& value = 420420, int encoder_index = 0)
 {
     std::lock_guard<std::mutex> lock(m);
-    //eMutex.lock();
-    //eWait.wait(&eMutex);
-    //eMutex.unlock();
     if (encoder_index == 0){
-        if (value == 0)
+        if (value == 420420)
         {
             return this -> counter0;
         }
@@ -64,7 +61,7 @@ int test_encoder::encoder_count(const int& value = 0, int encoder_index = 0)
         }   
     } else if(encoder_index == 1)
     {
-        if (value == 0)
+        if (value == 420420)
         {
             return this -> counter1;
         }
@@ -74,7 +71,7 @@ int test_encoder::encoder_count(const int& value = 0, int encoder_index = 0)
             return 0;
         }   
     } else if(encoder_index == 2){
-        if (value == 0)
+        if (value == 420420)
         {
             return this -> counter2;
         }
@@ -84,7 +81,7 @@ int test_encoder::encoder_count(const int& value = 0, int encoder_index = 0)
             return 0;
         }   
     } else{
-        if (value == 0)
+        if (value == 420420)
         {
             return this -> counter3;
         }
@@ -140,15 +137,15 @@ void test_encoder::encoder_update_thread(int encoder_index = 0){
 
     if (encoder_index == 0){
         //uncomment when encoders are fixed
-        encode_a = 19;
-        encode_b = 21;
+        encode_a = 21;
+        encode_b = 19;
 	GPIO::setup(encode_a, GPIO::INTO);
         GPIO::setup(encode_b, GPIO::INTO);
     } else if(encoder_index == 1)
     {
         ///uncomment when encoders are fixed
-        encode_a = 15;
-        encode_b = 13;
+        encode_a = 13;
+        encode_b = 15;
 	GPIO::setup(encode_a, GPIO::INTO);
         GPIO::setup(encode_b, GPIO::INTO);
     }else if(encoder_index == 2)
@@ -182,7 +179,7 @@ void test_encoder::encoder_update_thread(int encoder_index = 0){
 
         if (encoder_index == 0){
             
-            int var0 = this -> encoder_count(0,0);
+            int var0 = this -> encoder_count(420420,0);
 
             if ((val_b != last_reading) && val_b==1){
                 if (val_a != val_b) {
@@ -198,7 +195,7 @@ void test_encoder::encoder_update_thread(int encoder_index = 0){
 
             }
         } else if(encoder_index == 1){
-            int var1 = this -> encoder_count(0,1);
+            int var1 = this -> encoder_count(420420,1);
 
             if ((val_b != last_reading) && val_b==1){
                 if (val_a != val_b) {
@@ -213,7 +210,7 @@ void test_encoder::encoder_update_thread(int encoder_index = 0){
 
             }
         } else if(encoder_index == 2){
-            int var2 = this -> encoder_count(0,2);
+            int var2 = this -> encoder_count(420420,2);
 
             if ((val_b != last_reading) && val_b==1){
                 if (val_a != val_b) {
@@ -228,7 +225,7 @@ void test_encoder::encoder_update_thread(int encoder_index = 0){
 
             }
         } else if(encoder_index == 3){
-            int var3 = this -> encoder_count(0,3);
+            int var3 = this -> encoder_count(420420,3);
 
             if ((val_b != last_reading) && val_b==1){
                 if (val_a != val_b) {
@@ -356,10 +353,10 @@ void test_encoder::open_csv(){
 void test_encoder::write_encoders(unsigned counter){
     std::string count_string = to_string(counter);
 
-    std::string enc_a = to_string(this -> encoder_count(0,0));
-    std::string enc_b = to_string(this -> encoder_count(0,1));
-    std::string enc_c = to_string(this -> encoder_count(0,2));
-    std::string enc_d = to_string(this -> encoder_count(0,3));
+    std::string enc_a = to_string(this -> encoder_count(420420,0));
+    std::string enc_b = to_string(this -> encoder_count(420420,1));
+    std::string enc_c = to_string(this -> encoder_count(420420,2));
+    std::string enc_d = to_string(this -> encoder_count(420420,3));
 
     cout << count_string << " enc1 " << enc_a << " enc2 " << enc_b << endl;
     cout << count_string << " enc3 " << enc_c << " enc4 " << enc_d << endl;

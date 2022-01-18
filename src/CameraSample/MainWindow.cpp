@@ -701,7 +701,7 @@ void MainWindow::on_actionOpenCamera_triggered()
     char char_date[30];
     strcpy(char_date, str.c_str());
 
-    std::string out_path_str = "/media/daniel/ssd/wildpose_data/" + str;
+    std::string out_path_str = "/mnt/wildpose_data/" + str;
 
     QString out_path = QString::fromStdString(out_path_str);
 
