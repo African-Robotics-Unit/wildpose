@@ -2,11 +2,13 @@ cmake_minimum_required(VERSION 3.5.1)
 project(ximea_ros_cam)
 
 ## gnu++11 feature
-set(CMAKE_CXX_FLAGS "-std=gnu++11 -Wall -Wextra ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "-std=gnu++11 -Wall -Wextra${CMAKE_CXX_FLAGS}  -fPIC")
+set( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -O3 -fPIC" )
 
 ## Set ximea environment variables
 set(XIMEA_INCLUDE_PATH /usr/include)
 set(XIMEA_LIBRARY m3api)
+## set(JetsonGPIO_DIR /usr/local/lib/cmake/JetsonGPIO )
 
 ## Find catkin macros and libraries
 set(catkin_deps
@@ -65,6 +67,8 @@ target_link_libraries(${PROJECT_NAME}
     ${Boost_LIBRARIES}
     ${OpenCV_LIBRARIES}
     yaml-cpp
+    JetsonGPIO
+    pthread
 )
 
 ## Package depends on its generated messages
@@ -80,6 +84,8 @@ target_link_libraries(${PROJECT_NAME}_node
                       ${OpenCV_LIBRARIES}
                       yaml-cpp
                       ${PROJECT_NAME}
+		              JetsonGPIO
+		              pthread
 )
 
 #############

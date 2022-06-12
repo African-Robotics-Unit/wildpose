@@ -6,6 +6,6 @@
             <description>
                 Ximea ROS Camera Nodelet.
             </description>
-        </class>
+    	</class>
     </library>
 </class_libraries>

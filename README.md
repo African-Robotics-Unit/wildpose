@@ -1,6 +1,17 @@
 # ximea_ros_cam
 
-This is a fork of wavelab's ximea_ros_cam repository. The remainder of the readme is left as is.
+This is a fork of the ximea_ros_cam ros driver. It is modified for control and operation of the wildpose data collection rig.
+
+# Usage
+
+To start recording on the wildpose rig from a powered off state, perform the following steps:
+
+1.  Press the power button on the Xavier (left most button)
+2.  Wait for the boot process to complete. This will take about 50 seconds.
+3.  Connect the lidar's ethernet cable to the Xavier
+4.  Flick the switch on the PCB.
+5.  The lidar should boot. Wait approximately 20 seconds for the startup process.
+6.  Double-tap the wildpose_start script on the homescreen.
 
 # Prerequisites
 

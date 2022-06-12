@@ -16,3 +16,4 @@ uint32 exposure_time_us
 float32 gain_db
 uint32 acq_nframe
 uint32 image_user_data
+string encoders

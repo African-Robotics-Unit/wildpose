@@ -1,6 +1,6 @@
 <launch>
     <node pkg="ximea_ros_cam" type="ximea_ros_cam_node" name="ximea_cam" output="screen">
-        <param name="serial_no"       type="string" value="29970251" />
+        <param name="serial_no"       type="string" value="29970951" />
         <param name="cam_name"        type="string" value="ximea_cam" />
         <param name="calib_file"      type="string" value=""         />
         <param name="frame_id"        type="string" value="0"        />
@@ -22,7 +22,7 @@
         <remap from="image" to="/ximea_cam/image_raw" />
     </node>
 
-	<arg name="lvx_file_path" default="livox_test.lvx"/>
+	<arg name="lvx_file_path" default="/mnt/wildpose_data/livox_test.lvx"/>
         <arg name="bd_list" default="100000000000000"/>
         <arg name="xfer_format" default="0"/>
         <arg name="multi_topic" default="0"/>
@@ -50,5 +50,5 @@
               output="screen" />
 
         <node pkg="rosbag" type="record" name="record" output="screen"
-                        args="-a"/>
+                        args="-o /mnt/wildpose_data/ /livox/lidar /livox/imu /ximea_cam/xi_image_info"/>
 </launch>

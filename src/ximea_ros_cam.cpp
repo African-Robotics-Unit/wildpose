@@ -35,9 +35,360 @@ std::map<std::string, std::string> XimeaROSCam::ImgEncodingMap = {
 // -- Camera Models    -- //
 // -- 0 = MQ013CG-E2   -- //
 // --                  -- //
+using namespace GPIO;
+using namespace std;
 
 std::map<int, int> XimeaROSCam::CamMaxPixelWidth = { {0, 1920} };
 std::map<int, int> XimeaROSCam::CamMaxPixelHeight = { {0, 1080} };
+
+int XimeaROSCam::encoder_count(int value = 420420, int encoder_index = 0)
+{
+    std::lock_guard<std::mutex> lock(m);
+    if (encoder_index == 0){
+        if (value == 420420)
+        {
+            return this -> counter0;
+        }
+        else
+        {
+            this -> counter0 = value;
+            return 0;
+        }   
+    } else if(encoder_index == 1)
+    {
+        if (value == 420420)
+        {
+            return this -> counter1;
+        }
+        else
+        {
+            this -> counter1 = value;
+            return 0;
+        }   
+    } else if(encoder_index == 2){
+        if (value == 420420)
+        {
+            return this -> counter2;
+        }
+        else
+        {
+            this -> counter2 = value;
+            return 0;
+        }   
+    } else{
+        if (value == 420420)
+        {
+            return this -> counter3;
+        }
+        else
+        {
+            this -> counter3 = value;
+            return 0;
+        }   
+    }
+}
+
+void XimeaROSCam::setup_pins(){
+	int encode_a;
+    int encode_b;
+    //int val_a;
+    //int val_b;
+    //int last_reading;
+
+    	GPIO::setmode(GPIO::BOARD);
+    //GPIO::cleanup();
+
+        encode_a = 7;
+        encode_b = 19;
+        GPIO::setup(encode_a, GPIO::INTO);
+        GPIO::setup(encode_b, GPIO::INTO);
+        encode_a = 13;
+        encode_b = 15;
+        GPIO::setup(encode_a, GPIO::INTO);
+        GPIO::setup(encode_b, GPIO::INTO);
+        encode_a = 12;
+        encode_b = 16;
+        GPIO::setup(encode_a, GPIO::INTO);
+        GPIO::setup(encode_b, GPIO::INTO);
+        encode_a = 18;
+        encode_b = 22;
+        GPIO::setup(encode_a, GPIO::INTO);
+        GPIO::setup(encode_b, GPIO::INTO);
+
+	cout << "Pins set up!" << endl;
+}
+
+// Threaded function for updating encoder count variable based on pin values
+void XimeaROSCam::encoder_update_thread(int encoder_index = 0){
+    int encode_a;
+    int encode_b;
+    int val_a;
+    int val_b;
+    int last_reading;
+	
+    //this -> setup_pins();
+    //GPIO::cleanup();
+    //GPIO::setmode(GPIO::BOARD);
+
+    if (encoder_index == 0){
+        //uncomment when encoders are fixed
+        encode_a = 7;
+        encode_b = 19;
+	GPIO::setup(encode_a, GPIO::INTO);
+        GPIO::setup(encode_b, GPIO::INTO);
+    } else if(encoder_index == 1)
+    {
+        ///uncomment when encoders are fixed
+        encode_a = 13;
+        encode_b = 15;
+	GPIO::setup(encode_a, GPIO::INTO);
+        GPIO::setup(encode_b, GPIO::INTO);
+    }else if(encoder_index == 2)
+    {
+        encode_a = 12;
+        encode_b = 16;
+	GPIO::setup(encode_a, GPIO::INTO);
+        GPIO::setup(encode_b, GPIO::INTO);
+    }else
+    {
+        encode_a = 18;
+        encode_b = 22;
+	GPIO::setup(encode_a, GPIO::INTO);
+        GPIO::setup(encode_b, GPIO::INTO);
+    }
+    
+    last_reading = GPIO::input(encode_b);
+    //eWake = false;
+
+    while (stop_flag == 0){
+        // get a sample
+        //if(!eWake)
+        //{
+        //    eMutex.lock();
+        //    eWait.wait(&eMutex);
+        //    eMutex.unlock();
+        //}
+        eWake = false;
+        val_a = GPIO::input(encode_a);
+        val_b = GPIO::input(encode_b);
+
+        if (encoder_index == 0){
+            
+            int var0 = this -> encoder_count(420420,0);
+
+            if ((val_b != last_reading) && val_b==1){
+                if (val_a != val_b) {
+                    var0 --;
+                    //cout << "Decrement 0" << counter0 << endl;
+                    this -> encoder_count(var0, 0);
+                } else {
+                    // Encoder is rotating CW so increment
+                    //cout << "Increment 0" << counter0 << endl;
+                    var0 ++;
+                    this -> encoder_count(var0, 0);
+                }
+
+            }
+        } else if(encoder_index == 1){
+            int var1 = this -> encoder_count(420420,1);
+
+            if ((val_b != last_reading) && val_b==1){
+                if (val_a != val_b) {
+                    //cout << "Decrement 1" << counter1 << endl;
+		    var1 --;
+                    this -> encoder_count(var1, 1);
+                } else {
+                    // Encoder is rotating CW so increment
+                    //cout << "Increment 1" << counter1 << endl;
+                    var1 ++;
+                    this -> encoder_count(var1, 1);
+                }
+
+            }
+        } else if(encoder_index == 2){
+            int var2 = this -> encoder_count(420420,2);
+
+            if ((val_b != last_reading) && val_b==1){
+                if (val_a != val_b) {
+                    var2 --;
+                    this -> encoder_count(var2, 2);
+                } else {
+                    // Encoder is rotating CW so increment
+                    //cout << "Increment 1" << counter1 << endl;
+                    var2 ++;
+                    this -> encoder_count(var2, 2);
+                }
+
+            }
+        } else if(encoder_index == 3){
+            int var3 = this -> encoder_count(420420,3);
+
+            if ((val_b != last_reading) && val_b==1){
+                if (val_a != val_b) {
+                    var3 --;
+                    this -> encoder_count(var3, 3);
+                } else {
+                    // Encoder is rotating CW so increment
+                    //cout << "Increment 1" << counter1 << endl;
+                    var3 ++;
+                    this -> encoder_count(var3, 3);
+                }
+
+            }
+        }
+        
+        last_reading = val_b;
+    }
+
+    return;
+
+}
+void XimeaROSCam::loopy()
+{
+	int a_enable = 40;
+	int b_enable = 37;
+	int b_phase = 35;
+	int b_mode1 = 33;
+	int b_mode2 = 31;
+	int a_phase = 29;
+	int a_mode1 = 23;
+	int a_mode2 = 21;
+
+	int right_in = 26;
+	int left_in = 24;
+	int up_in = 36;
+	int down_in = 32;
+
+	//GPIO::setup(right_in, GPIO::OUTOF);
+	//GPIO::setup(left_in, GPIO::OUTOF);
+	//GPIO::setup(up_in, GPIO::OUTOF);
+	//GPIO::setup(down_in, GPIO::OUTOF);
+	
+	//GPIO::output(right_in, GPIO::HIGH);
+	//GPIO::output(left_in, GPIO::HIGH);
+	//GPIO::output(up_in, GPIO::HIGH);
+	//GPIO::output(down_in, GPIO::HIGH);
+	
+	GPIO::setup(right_in, GPIO::INTO);
+	GPIO::setup(left_in, GPIO::INTO);
+	GPIO::setup(down_in, GPIO::INTO);
+	GPIO::setup(up_in, GPIO::INTO);
+	
+	GPIO::setup(b_enable, GPIO::OUTOF, GPIO::LOW);	
+	GPIO::setup(a_enable, GPIO::OUTOF, GPIO::LOW);
+	GPIO::setup(b_phase, GPIO::OUTOF, GPIO::LOW);
+	GPIO::setup(a_phase, GPIO::OUTOF, GPIO::LOW);
+
+	GPIO::setup(a_mode1, GPIO::OUTOF, GPIO::HIGH);	
+	GPIO::setup(a_mode2, GPIO::OUTOF, GPIO::LOW);	
+	GPIO::setup(b_mode1, GPIO::OUTOF, GPIO::HIGH);	
+	GPIO::setup(b_mode2, GPIO::OUTOF, GPIO::LOW);	
+	cout << "Running joystick control!" << endl;
+	
+	GPIO::output(a_enable, GPIO::LOW);
+
+	GPIO::output(b_enable, GPIO::LOW);
+	GPIO::output(b_phase, GPIO::LOW);
+	GPIO::output(a_phase, GPIO::LOW);
+	while (!stop_flag)
+	{
+		int is_right = GPIO::input(right_in);
+		int is_left = GPIO::input(left_in);
+		int is_up = GPIO::input(up_in);
+		int is_down = GPIO::input(down_in);
+		if(is_right){
+
+			GPIO::output(a_phase, GPIO::HIGH);
+			GPIO::output(a_enable, GPIO::HIGH);
+
+			
+		}	
+		else if(is_left){
+			
+			GPIO::output(a_phase, GPIO::LOW);
+			GPIO::output(a_enable, GPIO::HIGH);
+
+		}		
+		
+		else if(is_up){
+		
+			GPIO::output(b_phase, GPIO::HIGH);
+			GPIO::output(b_enable, GPIO::HIGH);
+
+		}	
+		
+		else if(is_down){
+		
+			GPIO::output(b_phase, GPIO::LOW);
+			GPIO::output(b_enable, GPIO::HIGH);
+
+		}else{
+			
+			GPIO::output(b_enable, GPIO::LOW);
+
+			GPIO::output(a_enable, GPIO::LOW);
+		}
+	}
+
+    return;
+}
+
+void XimeaROSCam::stop(){
+    cout << "Stopping threads!" << endl;
+    //eWait.wakeAll();
+    this -> stop_flag = 1;
+    //wait for threads to end
+    usleep(1000);
+    GPIO::cleanup();
+    cout << "Stoppedthreads!" << endl;
+}
+
+void XimeaROSCam::start(){
+    cout << "Running threads!" << endl;
+    //this -> setup_pins();
+    //this -> encoder_update_thread();
+    //GPIO::cleanup();
+    GPIO::setmode(GPIO::BOARD);
+    std::thread t1(&ximea_ros_cam::XimeaROSCam::encoder_update_thread, this, 0);
+    std::thread t2(&ximea_ros_cam::XimeaROSCam::encoder_update_thread, this, 1);
+    std::thread t3(&ximea_ros_cam::XimeaROSCam::encoder_update_thread, this, 2);
+    std::thread t4(&ximea_ros_cam::XimeaROSCam::encoder_update_thread, this, 3);
+    std::thread j1(&ximea_ros_cam::XimeaROSCam::loopy, this);
+    t1.detach();
+    t2.detach();
+    t3.detach();
+    t4.detach();
+    j1.detach();
+    //QTimer::singleShot(0, this, [this](){encoder_update_thread();});
+    
+
+}
+
+void XimeaROSCam::open_csv(){
+
+    encoderlog1.open("encodetest.csv");
+    encoderlog1 << "Count,encoder_a,encoder_b,encoder_c,encoder_d\n";
+}
+
+std::string XimeaROSCam::write_encoders(unsigned counter){
+    std::string count_string = to_string(counter);
+    //double sec_time = ros::Time::now().toSec();
+    //std::string timestr = to_string(sec_time);
+
+    std::string enc_a = to_string(this -> encoder_count(420420,0));
+    std::string enc_b = to_string(this -> encoder_count(420420,1));
+    std::string enc_c = to_string(this -> encoder_count(420420,2));
+    std::string enc_d = to_string(this -> encoder_count(420420,3));
+
+    cout << count_string << " enc1 " << enc_a << " enc2 " << enc_b << endl;
+    cout << count_string << " enc3 " << enc_c << " enc4 " << enc_d << endl;
+    return(count_string+","+enc_a+","+enc_b+","+enc_c+","+enc_d);
+}
+
+void XimeaROSCam::close_file(){
+    encoderlog1.close();
+    cout << "Closed file csv" << endl;
+}
 
 XimeaROSCam::XimeaROSCam() : diag_updater{} {
     this->img_count_ = 0;                   // assume 0 images published
@@ -48,6 +399,11 @@ XimeaROSCam::XimeaROSCam() : diag_updater{} {
     this->xi_h_ = NULL;
     this->cam_info_loaded_ = false;
     this->age_min = 0.0;
+    this -> counter0 = 0;
+    this -> counter1 = 0;
+    this -> counter2 = 0;
+    this -> counter3 = 0;
+    this -> stop_flag = 0;
 }
 
 XimeaROSCam::~XimeaROSCam() {
@@ -67,6 +423,8 @@ XimeaROSCam::~XimeaROSCam() {
 
         ROS_INFO_STREAM("Closed device: " << this->cam_serialno_);
     }
+
+    stop();
     ROS_INFO("ximea_ros_cam node shutdown complete.");
 
     // To avoid warnings
@@ -151,7 +509,7 @@ void XimeaROSCam::initPubs() {
         this->private_nh_.advertise<ximea_ros_cam::XiImageInfo>(
           "xi_image_info", 0);
     }
-
+    start();
     // Report end of function
     ROS_INFO("... Publishers Loaded. ");
 }
@@ -620,10 +978,11 @@ void XimeaROSCam::openCam() {
     //      -- Optimize transport buffer commit/size based on payload  --
     // // For usb controllers that can handle it...
     // src: https://www.ximea.com/support/wiki/apis/Linux_USB30_Support
-    // xiSetParamInt(handle, XI_PRM_ACQ_TRANSPORT_BUFFER_COMMIT, 32);
-    // xiGetParamInt( handle, XI_PRM_ACQ_TRANSPORT_BUFFER_SIZE XI_PRM_INFO_MAX,
-    //  &buffer_size);
-    // xiSetParamInt(handle, XI_PRM_ACQ_TRANSPORT_BUFFER_SIZE, buffer_size);
+    xiSetParamInt(this->xi_h_, XI_PRM_ACQ_TRANSPORT_BUFFER_COMMIT, 32);
+    int buffer_size;
+    xiGetParamInt( this->xi_h_, XI_PRM_ACQ_TRANSPORT_BUFFER_SIZE XI_PRM_INFO_MAX,
+     &buffer_size);
+    xiSetParamInt(this->xi_h_, XI_PRM_ACQ_TRANSPORT_BUFFER_SIZE, buffer_size);
 
     // // For high frame rate performance
     // src: https://www.ximea.com/support/wiki/usb3/...
@@ -635,7 +994,6 @@ void XimeaROSCam::openCam() {
     ROS_INFO("Acquisition started...");
 
     this->is_active_ = true;                    // set active to be true
-
     // To avoid warnings
     (void)xi_stat;
 }
@@ -784,6 +1142,7 @@ void XimeaROSCam::frameCaptureCb() {
 
         // If active, publish xiGetImage info to ROS message
         if(this->publish_xi_image_info_) {
+	    std::string encstr = write_encoders(img_count_);
           ximea_ros_cam::XiImageInfo xiImageInfoMsg;
           xiImageInfoMsg.header.frame_id = this->cam_frameid_;
           xiImageInfoMsg.header.stamp = timestamp;
@@ -804,6 +1163,7 @@ void XimeaROSCam::frameCaptureCb() {
           xiImageInfoMsg.gain_db = xi_img.gain_db;
           xiImageInfoMsg.acq_nframe = xi_img.acq_nframe;
           xiImageInfoMsg.image_user_data = xi_img.image_user_data;
+	      xiImageInfoMsg.encoders = encstr;
           // xiGetImageMsg.exposure_sub_times_us = (unsigned int) xi_img.exposure_sub_times_us;
           this->cam_xi_image_info_pub_.publish(xiImageInfoMsg);
         }

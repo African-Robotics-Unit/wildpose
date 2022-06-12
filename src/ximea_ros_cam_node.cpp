@@ -2,6 +2,7 @@
 #include <ros/ros.h>
 #include <string>
 
+
 // Nodelet loading
 int main(int argc, char** argv) {
     // Init node

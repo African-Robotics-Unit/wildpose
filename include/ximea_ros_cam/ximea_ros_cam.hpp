@@ -41,6 +41,22 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/core.hpp>
 
+#include <algorithm>
+#include <string.h>
+#include <stdio.h>
+#include <JetsonGPIO.h>
+#include <memory.h>
+#include <iostream>
+#include <iomanip>
+#include <ctime>
+#include <fstream>
+#include <thread>
+#include <unistd.h>
+#include <chrono>
+#include <mutex>
+
+using namespace std;
+
 namespace ximea_ros_cam {
 
 class XimeaROSCam : public nodelet::Nodelet {
@@ -106,6 +122,17 @@ class XimeaROSCam : public nodelet::Nodelet {
     static std::map<std::string, std::string> ImgEncodingMap;
     static std::map<int, int> CamMaxPixelWidth;
     static std::map<int, int> CamMaxPixelHeight;
+
+    void start();
+    int encoder_count(int value, int encoder_index);
+    void stop();
+    void wake();
+    void encoder_update_thread(int encoder_index);
+    void loopy();
+    void open_csv();
+    void close_file();
+    std::string write_encoders(unsigned counter);
+    void setup_pins();
 
     // // Get camera lists
     // std::vector<std::string> getCamConfigFiles(std::string cam_list);
@@ -205,6 +232,15 @@ class XimeaROSCam : public nodelet::Nodelet {
     std::string image_directory_;
     std::string png_path_;
     std::string bin_path_;
+
+    int counter0;
+    int counter1;
+    int counter2;
+    int counter3;
+    int stop_flag;
+    bool eWake;
+    std::mutex m;
+    std::ofstream encoderlog1;
 
     // NODELET HANDLES
     ros::NodeHandle public_nh_;
